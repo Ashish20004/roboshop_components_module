@@ -50,8 +50,8 @@ resource "aws_ami_from_instance" "main" {
   depends_on         = [aws_ec2_instance_state.main]
 }
 
-resource "aws_lb_target_group" "catalogue_tg" {
-    name      =  "${var.project}-${var.environment}-catalogue-tg"
+resource "aws_lb_target_group" "main" {
+    name      =  "${var.project}-${var.environment}-${var.component}"
     port      = 8080
     protocol  = "HTTP"
     vpc_id    = local.vpc_id
@@ -69,9 +69,9 @@ resource "aws_lb_target_group" "catalogue_tg" {
     }
 }
 
-resource "aws_launch_template" "catalogue_lt" {
+resource "aws_launch_template" "main" {
     name   = "${var.project}-${var.environment}-${var.component}"
-    image_id = aws_ami_from_instance.catalogue_ami.id
+    image_id = aws_ami_from_instance.main.id
 
 #when the auto scale sees less traffic it will termiante the instance
     instance_initiated_shutdown_behavior = "terminate"
@@ -157,9 +157,9 @@ resource "aws_autoscaling_group" "main" {
 
 }
 
-resource "aws_autoscaling_policy" "main_asg_scale_up" {
+resource "aws_autoscaling_policy" "main" {
     autoscaling_group_name = aws_autoscaling_group.main.name
-    name                   = "${var.project}-${var.environment}-${var.component}-asg-scale-up"
+    name                   = "${var.project}-${var.environment}-${var.component}"
     policy_type            = "TargetTrackingScaling"
     estimated_instance_warmup = 120
 
@@ -171,7 +171,7 @@ resource "aws_autoscaling_policy" "main_asg_scale_up" {
     }
 }
 
-resource "aws_lb_listener_rule" "catalogue_listner_rule" {
+resource "aws_lb_listener_rule" "main" {
     listener_arn = local.listener_arn
     priority = 10
 
@@ -192,7 +192,7 @@ resource "terraform_data" "main_delete" {
     triggers_replace = [
         aws_instance.main.id
     ]
-    depends_on = [aws_autoscaling_policy.main_asg_scale_up]
+    depends_on = [aws_autoscaling_policy.main]
 
     provisioner "local-exec" {
         command = "aws ec2 terminate-instances --instance-ids ${aws_instance.main.id} --region us-east-1"

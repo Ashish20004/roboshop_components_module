@@ -1,6 +1,6 @@
 locals {
     ami_id = data.aws_ami.joindevops.id
-    private_subnet_ids = split(",", data.aws_ssm_parameter.private_subnet_ids.value)
+    private_subnet_ids = split(",", data.aws_ssm_parameter.private_subnet_ids.value)[0]
     vpc_id = data.aws_ssm_parameter.vpc_id.value
     sg_id = data.aws_ssm_parameter.sg_id.value
     backend_alb_arn = data.aws_ssm_parameter.backend_alb_arn.value
